@@ -47,17 +47,17 @@ public class BasicMath {
 
     // Fast expo -->
 
-    static void FastExpo(int n,int p ){
-        int res = 1;
+    static void FastExpo(int n,int p ){ // 2 , 7
+        int res = 1;   
         int num = n;
         int pow = p;
-        while (pow>0) {
-            if(pow%2!=0){
-                res *= num;
+        while (pow>0) {   
+            if(pow%2!=0){    //7|3|1
+                res *= num;  // 1*2 = 2| 2*4=8|128
             }
-            pow /= 2;
-
-            num = num * num;
+            pow /= 2; //3|1|0
+ 
+            num = num * num; // 2*2= 4|4*4=16| 
         }
         System.out.println(res);
     }
