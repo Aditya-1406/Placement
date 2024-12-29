@@ -1,3 +1,5 @@
+import java.net.Socket;
+
 public class Bits2 {
 
     static void print(int n ){
@@ -68,5 +70,42 @@ public class Bits2 {
         // System.out.println((char)b);
 
         //------------------------------------------------------------------------------------------------------------
+
+        // Swap  two numbers using xor 
+
+        // int n = 64;
+        // int m = 54;
+        // System.out.println(n+" "+m);
+
+        // n = n^m;
+        // m = n^m;
+        // n = n^m;
+
+        // System.out.println(n+" "+m);
+
+        //---------------------------------------------------------------------------------------------------------------
+
+        // find the unique element in the array -->
+
+        // int[] arr = {1,1,3,3,4,5,5,6,6};
+        // int res =0;
+        // for (int i = 0; i < arr.length; i++) {
+        //     res = res ^ arr[i];
+        // }
+        // System.out.println(res);
+
+        //--------------------------------------------------------------------------------------------------------------
+
+        // find the unique element in the array  where all other elements are even time-->
+
+        // int[] arr = {1,1,3,3,4,5,5,6,6,6,6};
+        // int res =0;
+        // for (int i = 0; i < arr.length; i++) {
+        //     res = res ^ arr[i];
+        // }
+        // System.out.println(res);
+
+        //-----------------------------------------------------------------------------------------------------
+
     }
 }
