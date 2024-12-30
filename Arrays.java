@@ -113,7 +113,25 @@ public class Arrays {
         // for (int i = 0 ;i<k;i++) {
         //     System.out.println("Target found at : "+ res[i]);
         // }
-        
+
+        //-------------------------------------------------------------------------------------------
+
+        // find min and max element in the array -->
+
+        // int[] arr = {1,2,3,4,5,6,4,85,4,7};
+        // int min = Integer.MAX_VALUE;
+        // int max = Integer.MIN_VALUE;
+
+        // for(int i = 0;i<arr.length;i++){
+        //     if(arr[i]<min) min = arr[i];
+        //     if(arr[i]>max) max = arr[i];
+        // }
+        // System.out.println("Min :- "+min+"\n"+"Max :- "+max);
+
+
+        //-------------------------------------------------------------------------------------
+
+    
     
 
 
