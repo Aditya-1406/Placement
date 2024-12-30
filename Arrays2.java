@@ -1,6 +1,17 @@
 // assuming that basic i/o of 2D array u know-->
 // proceeding to the linear search
 
+import java.util.*;
+ class  Pair {
+    int i;
+    int j;
+    Pair(int i, int j ){
+        this.i = i;
+        this.j = j;
+    }
+    
+}
+
 public class Arrays2 {
 
 
@@ -56,7 +67,43 @@ public class Arrays2 {
         
         // multiple occurencee -->
           
-        int firsti = -1;
-        int seci = -1;
+        
+        // ArrayList<Pair> res = new ArrayList<>(); // pair is the class above declared
+
+        // for (int i = 0; i < arr.length; i++) {
+        //     for (int j = 0; j < arr[0].length; j++) {
+        //         if(arr[i][j]==target){
+        //             res.add(new Pair(i, j));
+        //         }
+        //     }
+        // }
+
+        // for (Pair pair : res) {
+        //     Pair p = pair;
+        //     System.out.println(p.i+" "+ p.j);
+
+        // }
+
+        //-----------------------------------------------------------------------------
+
+        // find min and max in the 2D array -->
+
+        // int min = Integer.MAX_VALUE;
+        // int max = Integer.MIN_VALUE;
+
+        // for (int i = 0; i < arr.length; i++) {
+        //     for (int j = 0; j < arr[0].length; j++) {
+        //         if (arr[i][j] < min) {
+        //           min =arr[i][j];
+        //         }
+        //         if (arr[i][j] > max) {
+        //             max =arr[i][j];
+        //           }
+        //     }
+        // }
+
+        // System.out.println(min +" "+ max);
+
+        //--------------------------------------------------------------------------------------
     }
 }
