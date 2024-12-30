@@ -1,3 +1,5 @@
+// assuming that basic i/o of the array u know
+
 public class Arrays {
 
     // insertion int the array -->
