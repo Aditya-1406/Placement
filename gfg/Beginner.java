@@ -1,5 +1,6 @@
 package gfg;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Beginner {
@@ -64,12 +65,29 @@ public class Beginner {
         }
     }
 
+    // k - sized max element(not optimized) --->
+
+    static ArrayList<Integer> maxSub(int[] arr,int k){
+        ArrayList<Integer> res = new ArrayList<>();
+
+        for (int i = 0; i<=arr.length-k; i++) {
+            int max = arr[i];
+            for (int j = i; j < i+k; j++) {
+                
+                if(max<arr[j]) max =arr[j];
+            }
+            res.add(max);
+        }
+
+        return res;
+    }
+
 
     public static void main(String[] args) {
         
         // Array search 
 
-        int arr[] = {2,4,7,8,9,10};
+        int arr[] = {1, 2, 3, 1, 4, 5, 2, 3, 6};
         // int x = 3;
         // System.out.println(search(arr, x));
 
@@ -86,9 +104,19 @@ public class Beginner {
         //----------------------------------------------------------
 
         // wave the array---
-        print(arr);
-        System.out.println();
-        waveSort(arr);
-        print(arr);
+        // print(arr);
+        // System.out.println();
+        // waveSort(arr);
+        // print(arr);
+
+        //-------------------------------------------------------------
+
+        // K sized max element---->
+        int k = 3;
+        ArrayList<Integer> res = maxSub(arr,k);
+        for (Integer integer : res) {
+            System.out.print(integer+" ");
+        }
+
     }
 }
