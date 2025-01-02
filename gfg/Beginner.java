@@ -2,6 +2,8 @@ package gfg;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Deque;
+import java.util.LinkedList;
 
 public class Beginner {
 
@@ -82,6 +84,29 @@ public class Beginner {
         return res;
     }
 
+    // k - sized max element( optimized) --->
+    public ArrayList<Integer> max_of_subarrays(int arr[], int k) {
+        Deque<Integer> deque = new LinkedList<>();
+        ArrayList<Integer> list = new ArrayList<>();
+
+        for(int i = 0; i < arr.length; i++){
+            if(!deque.isEmpty() && deque.getFirst() <= i - k){
+                deque.removeFirst();
+            }
+
+            while(!deque.isEmpty() && arr[deque.getLast()] <= arr[i]){
+                deque.removeLast();
+            }
+
+            deque.addLast(i);
+
+            if(i >= k - 1){
+                list.add(arr[deque.getFirst()]);
+            }
+        }
+        
+        return list;
+    }
 
     public static void main(String[] args) {
         
