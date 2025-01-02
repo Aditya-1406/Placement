@@ -35,12 +35,41 @@ public class Beginner {
         return res;
     }
 
+    // wave array -->
+    
+
+    static void waveSort(int[] arr){
+        int n = arr.length;
+        if(n==1) return;
+        if(n%2!=0){
+            for(int i = 0;i<arr.length-2;i+=2){
+                int temp = arr[i];
+                arr[i] = arr[i+1] ;
+                arr[i+1] = temp;
+            }
+        }
+        else{
+            for(int i = 0;i<arr.length-1;i+=2){
+                int temp = arr[i];
+                arr[i] = arr[i+1] ;
+                arr[i+1] = temp;
+            }
+        }
+
+
+    }
+    static void print(int[] arr){
+        for (int i : arr) {
+            System.out.print(i+" ");
+        }
+    }
+
 
     public static void main(String[] args) {
         
         // Array search 
 
-        int arr[] = {1};
+        int arr[] = {2,4,7,8,9,10};
         // int x = 3;
         // System.out.println(search(arr, x));
 
@@ -51,6 +80,15 @@ public class Beginner {
         // -------------------------------------------------------
 
         // missing element in the array->
-        System.out.println(missingNumber(arr));
+
+        // System.out.println(missingNumber(arr));
+
+        //----------------------------------------------------------
+
+        // wave the array---
+        print(arr);
+        System.out.println();
+        waveSort(arr);
+        print(arr);
     }
 }
