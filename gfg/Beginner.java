@@ -143,5 +143,7 @@ public class Beginner {
             System.out.print(integer+" ");
         }
 
+        // today  not work just solved 1 question on gfg
+
     }
 }
