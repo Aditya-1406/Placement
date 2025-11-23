@@ -1,8 +1,9 @@
 import os
 import random
 import time
-from typing import List, Dict
+from typing import List
 from dotenv import load_dotenv
+import streamlit as st
 
 # --- LLM CLIENT IMPORTS ---
 try:
@@ -10,14 +11,13 @@ try:
     from google.genai import types
     from google.genai.errors import APIError
 except ImportError:
-    print("Error: The 'google-genai' package is not installed.")
-    print("Please run: pip install google-genai python-dotenv")
-    exit()
+    st.error("Error: The 'google-genai' package is not installed.\nRun: pip install google-genai python-dotenv")
+    st.stop()
 
 load_dotenv()
 MODEL_NAME = "gemini-2.5-flash"
 
-# Role-based Question Bank
+# ----------------- Questions -----------------
 QUESTION_BANK = {
     "engineer": {
         "beginner": [
@@ -65,9 +65,7 @@ QUESTION_BANK = {
     }
 }
 
-# =================================================================
-# Tools
-# =================================================================
+# ----------------- Tools -----------------
 class InterviewTools:
     @staticmethod
     def get_question(role: str, level: str) -> str:
@@ -80,7 +78,6 @@ class InterviewTools:
 
     @staticmethod
     def get_hint(question: str) -> str:
-        """Generate a small hint for a technical question."""
         hints = {
             "subarray": "Consider Kadane's algorithm for max sum subarray.",
             "linked list": "Try using two pointers to detect the cycle.",
@@ -92,139 +89,120 @@ class InterviewTools:
                 return hint
         return "Think logically and break down the problem step by step."
 
-# =================================================================
-# Agents
-# =================================================================
+# ----------------- Agents -----------------
 class InterviewerAgent:
-    def __init__(self, client: genai.Client, job_description: str, role: str):
+    def __init__(self, client, role: str):
         self.client = client
         self.role = role
-        self.system_prompt = f"""
-        You are a professional interviewer for {role} roles.
-        INSTRUCTIONS:
-        1. Ask one question at a time.
-        2. If candidate is confused, provide a short hint and repeat question.
-        3. Keep follow-ups shallow.
-        """
-        self.chat_session = self.client.chats.create(
-            model=MODEL_NAME,
-            config=types.GenerateContentConfig(system_instruction=self.system_prompt)
-        )
+        self.last_question = ""
 
-    def start_interview(self) -> str:
+    def start_interview(self):
         if self.role.lower() == "engineer":
             question = InterviewTools.get_question(self.role, "advanced")
         else:
             question = InterviewTools.get_question(self.role, "beginner")
-        response = self.chat_session.send_message(question)
-        return response.text, question
+        self.last_question = question
+        return question
 
-    def get_next_question(self, user_response: str, last_question: str) -> str:
+    def get_next_question(self, user_response: str):
         confusion_keywords = ["don't understand", "unable to", "explain", "clarify", "not sure"]
         if any(word in user_response.lower() for word in confusion_keywords):
-            hint = InterviewTools.get_hint(last_question)
-            clarification = f"Sure, let me clarify: {last_question}\nHint: {hint}"
-            response = self.chat_session.send_message(clarification)
-            return response.text  # Only clarification
+            hint = InterviewTools.get_hint(self.last_question)
+            clarification = f"Let me clarify: {self.last_question}\n💡 Hint: {hint}"
+            return clarification, self.last_question
 
-        # Next shallow follow-up
         if self.role.lower() == "engineer":
             next_level = random.choices(
                 ["advanced", "intermediate", "beginner"], weights=[0.4, 0.4, 0.2], k=1
             )[0]
         else:
             next_level = "intermediate"
-        next_question = InterviewTools.get_question(self.role, next_level)
-        response = self.chat_session.send_message(user_response + "\n" + next_question)
-        return response.text, next_question
 
-# Feedback Agent with scoring
+        next_question = InterviewTools.get_question(self.role, next_level)
+        self.last_question = next_question
+        return next_question, next_question
+
 class FeedbackAgent:
-    def __init__(self, client: genai.Client, job_description: str):
+    def __init__(self, client, job_description: str):
         self.client = client
         self.job_description = job_description
-        self.system_prompt = f"""
+
+    def analyze_session(self, conversation_history: List[str]):
+        transcript = "\n".join(conversation_history)
+        prompt = f"""
         You are a Senior Manager analyzing candidate performance.
         Provide feedback in Markdown format:
         - Overall Score: X/5
         - Strengths
         - Areas for Improvement
         - Example of Better Answer
-        """
 
-    def analyze_session(self, conversation_history: List[str]) -> str:
-        transcript = "\n".join(conversation_history)
-        prompt = f"{self.system_prompt}\nFull Transcript:\n{transcript}\nGenerate feedback."
+        Transcript:
+        {transcript}
+        """
         response = self.client.models.generate_content(
             model=MODEL_NAME,
             contents=[prompt]
         )
         return response.text
 
-# =================================================================
-# Orchestrator
-# =================================================================
-def interview_practice_session() -> None:
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        print("GEMINI_API_KEY not set.")
-        return
-    
-    client = genai.Client(api_key=api_key)
+# ----------------- Streamlit UI -----------------
+st.title("🧑‍💻 Advanced Interview Practice Bot")
+api_key = os.getenv("GEMINI_API_KEY")
+if not api_key:
+    st.error("GEMINI_API_KEY not set in .env file")
+    st.stop()
 
-    role = ""
-    while role.lower() not in ["engineer", "sales", "marketing"]:
-        role = input("Which role are you preparing for? (Engineer/Sales/Marketing): ")
-    
-    job_description = f"Role: {role.capitalize()}"
-    interviewer = InterviewerAgent(client, job_description, role)
-    feedback_agent = FeedbackAgent(client, job_description)
+client = genai.Client(api_key=api_key)
 
-    conversation_history: List[str] = []
+if "role" not in st.session_state:
+    st.session_state.role = ""
+if "conversation" not in st.session_state:
+    st.session_state.conversation = []
+if "interviewer" not in st.session_state:
+    st.session_state.interviewer = None
+if "feedback_agent" not in st.session_state:
+    st.session_state.feedback_agent = None
+if "last_question" not in st.session_state:
+    st.session_state.last_question = ""
 
-    print("\n🚀 Interview Started! Type 'exit' or 'quit' to end the interview at any time.\n")
+# Select role
+if st.session_state.role == "":
+    role = st.selectbox("Select the role you are preparing for:", ["Engineer", "Sales", "Marketing"])
+    if st.button("Start Interview"):
+        st.session_state.role = role
+        st.session_state.interviewer = InterviewerAgent(client, role)
+        st.session_state.feedback_agent = FeedbackAgent(client, f"Role: {role}")
+        first_question = st.session_state.interviewer.start_interview()
+        st.session_state.last_question = st.session_state.interviewer.last_question
+        st.session_state.conversation.append(f"Interviewer: {first_question}")
+        st.experimental_rerun()
 
-    try:
-        first_output, last_question = interviewer.start_interview()
-        print(f"**Interviewer:** {first_output}")
-        conversation_history.append(f"Interviewer: {first_output}")
-    except APIError as e:
-        print(f"API ERROR: {e}")
-        return
+# Display conversation
+for msg in st.session_state.conversation:
+    st.write(msg)
 
-    while True:
-        start_time = time.time()
-        user_response = input("\n**Your Answer:** ")
-        if user_response.lower() in ["quit", "exit"]:
-            print("\n🙏 Thank you for participating in this interview!")
-            break
-        conversation_history.append(f"Candidate: {user_response}")
+# User input
+if st.session_state.role != "":
+    user_answer = st.text_area("Your Answer:", key="answer_box", height=100)
+    if st.button("Submit Answer"):
+        if user_answer.strip() != "":
+            st.session_state.conversation.append(f"Candidate: {user_answer}")
 
-        # Check time for hint if candidate takes too long
-        if time.time() - start_time > 60:
-            hint = InterviewTools.get_hint(last_question)
-            print(f"\n💡 Hint: {hint}")
+            next_output, last_question = st.session_state.interviewer.get_next_question(user_answer)
+            st.session_state.last_question = last_question
+            st.session_state.conversation.append(f"Interviewer: {next_output}")
+            st.experimental_rerun()
 
-        try:
-            output = interviewer.get_next_question(user_response, last_question)
-            if isinstance(output, tuple):
-                next_output, last_question = output
-            else:
-                next_output = output
-            print(f"**Interviewer:** {next_output}")
-            conversation_history.append(f"Interviewer: {next_output}")
-        except APIError as e:
-            print(f"API ERROR: {e}")
-            break
-
-    print("\n✨ Interview Concluded. Generating Feedback... ✨\n")
-    try:
-        final_report = feedback_agent.analyze_session(conversation_history)
-        print(final_report)
-    except APIError as e:
-        print(f"API ERROR while generating feedback: {e}")
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-
-if __name__ == "__main__":
-    interview_practice_session()
+    if st.button("End Interview"):
+        st.write("🙏 Thank you for participating in this interview!")
+        feedback = st.session_state.feedback_agent.analyze_session(st.session_state.conversation)
+        st.markdown("### 📝 Feedback:")
+        st.markdown(feedback)
+        # Clear session state for next run
+        st.session_state.role = ""
+        st.session_state.conversation = []
+        st.session_state.interviewer = None
+        st.session_state.feedback_agent = None
+        st.session_state.last_question = ""
+        st.experimental_rerun()
